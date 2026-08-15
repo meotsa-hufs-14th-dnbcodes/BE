@@ -7,7 +7,7 @@ class Category(models.Model):
         return self.category_name
 
 class Procedure(models.Model):
-    category_id = models.ForeignKey(
+    category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         related_name="procedures",

@@ -7,7 +7,7 @@ class ProcedureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Procedure
-        field = ['procCode','procName']
+        fields = ['procCode','procName']
 
 class CategoryProcedureSerializer(serializers.ModelSerializer):
     categoryName = serializers.CharField(source='category_name', read_only=True)
@@ -15,6 +15,6 @@ class CategoryProcedureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        field = ['categoryName', 'procedures']
+        fields = ['categoryName', 'procedures']
 
     
