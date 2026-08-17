@@ -1,5 +1,7 @@
 services:
     web:
+        build:
+            context: ..
         image: chrono-web
         container_name: web
         command: bash -c "gunicorn chronoProject.wsgi:application -b 0.0.0.0:8000"
