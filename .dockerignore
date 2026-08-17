@@ -1,0 +1,16 @@
+chronoProject/cert/
+.git
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+.env.*
+*.pem
+*.key
+venv/
+env/
+myvenv/
+.venv/
+.vscode/
+.idea/
+*.log
