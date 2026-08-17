@@ -33,7 +33,7 @@ jobs:
                     --health-cmd="mysqladmin ping -h 127.0.0.1"
                     --health-interval=10s
                     --health-timeout=5s
-                    --health-retires=5
+                    --health-retries=5
         strategy:
             matrix:
                 include:
