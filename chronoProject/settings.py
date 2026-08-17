@@ -24,7 +24,8 @@ environ.Env.read_env(os.path.join(BASE_DIR / '.env'))
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-only-chronoproject')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -79,10 +80,10 @@ WSGI_APPLICATION = 'chronoProject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
+        'NAME': config('DB_NAME', default='dummy'),
+        'USER': config('DB_USER', default='dummy'),
+        'PASSWORD': config('DB_PASSWORD', default='dummy'),
+        'HOST': config('DB_HOST', default='dummy'),
         'PORT': 3306,
     }
 }
