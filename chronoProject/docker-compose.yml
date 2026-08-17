@@ -7,7 +7,6 @@ services:
             - '8000:8000'
         restart: always
         volumes:
-            - .:/app
             - ./static:/app/static
         networks:
             - server
