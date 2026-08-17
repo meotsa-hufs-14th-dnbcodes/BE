@@ -26,8 +26,6 @@ jobs:
                 include:
                     - name: chronoProject
                       working-directory: .
-                    - name: selfie_analysis
-                      working-directory: selfie_analysis
 
         steps:
             - uses: actions/checkout@v4
