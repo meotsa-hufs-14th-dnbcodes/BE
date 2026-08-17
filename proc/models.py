@@ -38,8 +38,8 @@ class ProcedureRecord(models.Model):
         Procedure,
         on_delete=models.PROTECT,
         db_column="proc_code",
-        related_name="proc_code",
-        verbose_name="시술 코드"
+        related_name="records",
+        verbose_name="시술 코드",
     )
 
     proc_name = models.CharField(max_length=100, verbose_name="시술명")
