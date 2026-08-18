@@ -40,4 +40,5 @@ services:
 
 networks:
     server:
-        driver: bridge
+        external: true
+        name: app_net
