@@ -21,5 +21,5 @@ from proc import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('proc/', include('proc.urls')),
-  path('', include('accounts.urls')),
+    path('', include('accounts.urls')),
 ]
