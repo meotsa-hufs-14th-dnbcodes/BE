@@ -1,0 +1,64 @@
+name: CI
+
+on:
+    pull_request:
+        branches: [main]
+
+jobs:
+    check-conflict:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Try merging base branch
+              run: |
+                  git config user.email "ci@github-actions.local"
+                  git config user.name "github-actions"
+                  git fetch origin ${{ github.base_ref }}
+                  git merge --no-commit --no-ff origin/${{ github.base_ref }}
+
+    django-check:
+        runs-on: ubuntu-latest
+        services:
+            mysql:
+                image: mysql:8.4
+                env:
+                    MYSQL_ROOT_PASSWORD: root
+                    MYSQL_DATABASE: chrono_ci
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -h 127.0.0.1"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=5
+        strategy:
+            matrix:
+                include:
+                    - name: chronoProject
+                      working-directory: .
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: '3.13'
+
+            - name: Install system dependencies
+              run: sudo apt-get update && sudo apt-get install -y libmysqlclient-dev pkg-config
+
+            - name: Install dependencies
+              working-directory: ${{ matrix.working-directory }}
+              run: pip install -r requirements.txt
+
+            - name: Run django check
+              working-directory: ${{ matrix.working-directory }}
+              env:
+                  DB_NAME: chrono_ci
+                  DB_USER: root
+                  DB_PASSWORD: root
+                  DB_HOST: 127.0.0.1
+              run: python manage.py check
