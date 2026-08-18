@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import SelfieAnalysisCreateView, SelfieAnalysisDetailView
+from .views import PerfectCorpWebhookView, SelfieAnalysisCreateView, SelfieAnalysisDetailView
 
 app_name = "analysis"
 
@@ -11,4 +11,5 @@ urlpatterns = [
         SelfieAnalysisDetailView.as_view(),
         name="detail",
     ),
+    path("webhooks/perfectcorp/", PerfectCorpWebhookView.as_view(), name="perfectcorp-webhook"),
 ]

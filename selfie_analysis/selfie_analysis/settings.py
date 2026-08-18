@@ -18,12 +18,11 @@ env = environ.Env(
         list,
         ["moisture", "firmness", "redness", "pore", "wrinkle", "age_spot"],
     ),
+    PERFECTCORP_WEBHOOK_SECRET=(str, ""),
     PERFECTCORP_POLL_INTERVAL_SECONDS=(float, 3.0),
     SKIN_ANALYSIS_POLL_TIMEOUT_SECONDS=(float, 120.0),
     SELFIE_UPLOAD_RSA_PRIVATE_KEY=(str, ""),
     INTERNAL_SERVICE_TOKEN=(str, ""),
-    CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
-    CELERY_RESULT_BACKEND=(str, "django-db"),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -42,7 +41,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "django_celery_results",
     "analysis",
 ]
 
@@ -103,9 +101,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-# PerfectCorp 이미지 업로드 제한(10MB)을 base64 인코딩 오버헤드(~1.33배)까지 감안해 열어둠.
-# Django 기본값(2.5MB)로는 일반 폰 사진도 못 받는다.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
 
 # --- DRF ---
@@ -115,21 +110,7 @@ REST_FRAMEWORK = {
 }
 
 
-# --- Celery ---
-# 분석에 몇 초~몇십 초가 걸릴 수 있어 업로드 요청을 절대 동기로 막지 않는다(기획서 원칙).
-CELERY_BROKER_URL = env("CELERY_BROKER_URL")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = TIME_ZONE
-# 업로드 즉시 202로 응답해야 하므로 task는 항상 비동기로 워커에 위임한다.
-CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
-
-
 # --- 셀카 업로드 하이브리드 암호화 (analysis/crypto.py) ---
-# .env는 한 줄 값만 안전하게 다루므로, PEM의 실제 개행 대신 리터럴 "\n"으로 저장해두고
-# 여기서 되돌린다 (generate_selfie_keypair 커맨드로 키를 만들 때 이 형식에 맞춰줄 것).
 SELFIE_UPLOAD_RSA_PRIVATE_KEY = env("SELFIE_UPLOAD_RSA_PRIVATE_KEY").replace("\\n", "\n")
 
 # --- 메인 서버 ↔ 이 마이크로서비스 간 임시 인증 (analysis/permissions.py, 설계 미확정) ---
@@ -142,7 +123,9 @@ SKIN_ANALYSIS_POLL_TIMEOUT_SECONDS = env.float("SKIN_ANALYSIS_POLL_TIMEOUT_SECON
 PERFECTCORP_BASE_URL = env("PERFECTCORP_BASE_URL")
 PERFECTCORP_API_KEY = env("PERFECTCORP_API_KEY")
 
-# PerfectCorp API를 아직 발급받지 않아서, 발급이후 .env의 PERFECTCORP_FILE_UPLOAD_PATH에 채워 넣을 예정입니다
 PERFECTCORP_FILE_UPLOAD_PATH = env("PERFECTCORP_FILE_UPLOAD_PATH")
 PERFECTCORP_DST_ACTIONS = env.list("PERFECTCORP_DST_ACTIONS")
 PERFECTCORP_POLL_INTERVAL_SECONDS = env.float("PERFECTCORP_POLL_INTERVAL_SECONDS")
+PERFECTCORP_WEBHOOK_SECRET = env("PERFECTCORP_WEBHOOK_SECRET")
+
+CHRONO_WEBHOOK_URL = env('CHRONO_WEBHOOK_URL', default='http://127.0.0.1:8000/selfie/selfie-analyses/webhook/')
