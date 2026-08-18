@@ -1,30 +1,27 @@
 from __future__ import annotations
 
 import logging
-import time
-
-from celery import shared_task
-from django.conf import settings
 
 from .crypto import DecryptionError, decrypt_selfie_payload
 from .models import AnalysisStatus, FailReason, SelfieAnalysis, SelfieAnalysisDetail
 from .providers import get_provider
 from .providers.errors import map_provider_error
 
+import requests
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=0)
-def run_skin_analysis(self, analysis_id: int, encrypted_key: str, nonce: str, ciphertext: str):
+def start_skin_analysis(analysis_id: int, encrypted_key: str, nonce: str, ciphertext: str):
     """
-    업로드 즉시 202로 응답한 뒤 백그라운드에서 도는 전체 파이프라인:
-    복호화 → 벤더 업로드 → 분석 시작 → 폴링 → 결과 저장/상태 갱신.
-    원본 이미지 바이트는 이 함수 실행 중에만 메모리에 존재한다.
+    업로드 요청 안에서 동기로 실행: 복호화 → 벤더 업로드 → 분석 시작.
+    실제 분석 완료/결과 저장은 PerfectCorp webhook이 오면 complete_skin_analysis가 처리
     """
     try:
         analysis = SelfieAnalysis.objects.get(pk=analysis_id)
     except SelfieAnalysis.DoesNotExist:
-        logger.warning("SelfieAnalysis %s not found, dropping task", analysis_id)
+        logger.warning("SelfieAnalysis %s not found, dropping request", analysis_id)
         return
 
     try:
@@ -61,14 +58,43 @@ def run_skin_analysis(self, analysis_id: int, encrypted_key: str, nonce: str, ci
     analysis.provider_task_id = task_id
     analysis.save(update_fields=["provider_task_id", "updated_at"])
 
-    result = _poll_until_done(provider, task_id, analysis_id)
-    if result is None:
-        # 타임아웃: "API 오류 시 이전 데이터 유지" 원칙 — 직전 결과는 건드리지 않고 FAIL만 기록
+
+def complete_skin_analysis(task_id: str):
+    """
+    PerfectCorp webhook이 완료(success/error)를 알려오면 호출된다.
+    webhook 바디엔 task_status만 있고 실제 결과는 없으므로, poll()을 한 번 더 불러 받아온다.
+    """
+    try:
+        analysis = SelfieAnalysis.objects.get(provider_task_id=task_id)
+    except SelfieAnalysis.DoesNotExist:
+        logger.warning("no SelfieAnalysis for provider_task_id=%s, dropping webhook", task_id)
+        return
+
+    if analysis.status != AnalysisStatus.PENDING:
+        # webhook 재전송 등으로 이미 처리된 건 — 멱등하게 무시
+        logger.info(
+            "analysis %s already resolved (status=%s), ignoring webhook",
+            analysis.analysis_id, analysis.status,
+        )
+        return
+
+    provider = get_provider()
+
+    try:
+        result = provider.poll(task_id)
+    except Exception:
+        logger.exception("poll failed for task %s", task_id)
         _mark_fail(analysis, FailReason.API_ERROR)
         return
 
     if result.status == "error":
         _mark_fail(analysis, map_provider_error(provider.name, result.error_code))
+        return
+
+    if result.status != "success":
+        # webhook은 왔는데 아직 running이면 예상 밖 상황. API 오류로 처리
+        logger.warning("webhook fired but task %s still %s", task_id, result.status)
+        _mark_fail(analysis, FailReason.API_ERROR)
         return
 
     SelfieAnalysisDetail.objects.bulk_create(
@@ -85,25 +111,27 @@ def run_skin_analysis(self, analysis_id: int, encrypted_key: str, nonce: str, ci
     analysis.status = AnalysisStatus.SUCCESS
     analysis.fail_reason = None
     analysis.save(update_fields=["status", "fail_reason", "updated_at"])
-
-
-def _poll_until_done(provider, task_id: str, analysis_id: int):
-    max_wait = settings.SKIN_ANALYSIS_POLL_TIMEOUT_SECONDS
-    interval = provider.polling_interval_seconds
-    elapsed = 0.0
-
-    while elapsed <= max_wait:
-        result = provider.poll(task_id)
-        if result.status in ("success", "error"):
-            return result
-        time.sleep(interval)
-        elapsed += interval
-
-    logger.warning("polling timed out for analysis %s (task %s)", analysis_id, task_id)
-    return None
+    _notify_chrono(analysis)
 
 
 def _mark_fail(analysis: SelfieAnalysis, fail_reason: str) -> None:
     analysis.status = AnalysisStatus.FAIL
     analysis.fail_reason = fail_reason
     analysis.save(update_fields=["status", "fail_reason", "updated_at"])
+    _notify_chrono(analysis)
+
+
+def _notify_chrono(analysis):
+    try:
+        requests.post(
+            settings.CHRONO_WEBHOOK_URL,
+            json={
+                "user_id": analysis.user_id,
+                "status": analysis.status,
+                "fail_reason": analysis.fail_reason,
+            },
+            headers={"X-Service-Token": settings.INTERNAL_SERVICE_TOKEN},
+            timeout=5,
+        )
+    except requests.RequestException:
+        logger.exception("failed to notify chronoProject for analysis %s", analysis.analysis_id)

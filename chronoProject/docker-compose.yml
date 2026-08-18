@@ -26,7 +26,7 @@ services:
         ports:
             - '8001:8001'
         restart: always
-        networks: 
+        networks:
             - server
 
     nginx:
@@ -57,4 +57,4 @@ services:
 
 networks:
     server:
-      driver: bridge
+        driver: bridge
