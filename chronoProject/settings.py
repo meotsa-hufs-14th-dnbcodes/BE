@@ -42,11 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
 
     'drf_yasg',
-=======
->>>>>>> a91c2703b0db8224819d54fbb87529b1176c3df9
     'rest_framework',
     'proc',
     'rest_framework.authtoken',
@@ -148,7 +145,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'accounts.authentication.BearerAuthentication',
     ],
     'EXCEPTION_HANDLER': 'accounts.exceptions.custom_exception_handler',
 }

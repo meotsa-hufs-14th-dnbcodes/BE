@@ -4,7 +4,7 @@ from rest_framework import status, generics
 from .models import Category, ProcedureRecord
 from .serializers import CategoryProcedureSerializer, ProcedureRecordCreateSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 class CategoryProcedureListView(APIView):
     def get(self, request):
@@ -21,13 +21,15 @@ class CategoryProcedureListView(APIView):
 class ProcedureRecordCreateView(generics.ListCreateAPIView):
     serializer_class = ProcedureRecordCreateSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         return ProcedureRecord.objects.filter(
             user=self.request.user, 
             is_deleted=False
         ).select_related('procedure')
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
