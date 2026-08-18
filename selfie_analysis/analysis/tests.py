@@ -32,7 +32,7 @@ def _encrypt_for_test(image_bytes: bytes, public_key) -> dict:
 
 
 class _StubProvider:
-    """벤더 호출을 흉내내는 테스트 전용 provider — 실제 네트워크를 타지 않는다."""
+    # 벤더 호출을 흉내내는 테스트 전용 provider (실제 네트워크를 타지 않음)
 
     name = "stub"
     polling_interval_seconds = 0
@@ -85,7 +85,7 @@ class SelfieAnalysisPipelineTests(TestCase):
         mock_get_provider.return_value = _StubProvider(
             AnalysisResult(
                 status="success",
-                metrics=[SkinMetric(region="forehead", metric_type="moisture", score=72.5, unit=None)],
+                metrics=[SkinMetric(metric_type="moisture", score=72.5)],
             )
         )
 

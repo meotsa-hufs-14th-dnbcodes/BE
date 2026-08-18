@@ -9,6 +9,7 @@ from analysis.models import FailReason
 # PerfectCorp Skin Analysis v2.1 문서(요약본)에 등장한 에러 코드 기준.
 _PERFECTCORP_ERROR_MAP = {
     "error_no_face": FailReason.NO_FACE,
+    "error_src_face_too_small": FailReason.FACE_TOO_SMALL,
     "error_exceed_max_image_size": FailReason.IMAGE_TOO_LARGE,
     "exceed_max_filesize": FailReason.IMAGE_TOO_LARGE,
     "error_nsfw_content_detected": FailReason.UPLOAD_FAILED,

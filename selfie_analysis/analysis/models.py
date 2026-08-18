@@ -13,6 +13,7 @@ class FailReason(models.TextChoices):
     MULTIPLE_FACES = "MULTIPLE_FACES", "다중 얼굴"
     MASK_DETECTED = "MASK_DETECTED", "마스크 착용"
     MOTION_BLUR = "MOTION_BLUR", "흔들림"
+    FACE_TOO_SMALL = "FACE_TOO_SMALL", "얼굴 너무 작음"
     IMAGE_TOO_LARGE = "IMAGE_TOO_LARGE", "용량 초과"
     UPLOAD_FAILED = "UPLOAD_FAILED", "업로드 실패"
     API_ERROR = "API_ERROR", "API 오류"
@@ -47,19 +48,11 @@ class SelfieAnalysis(models.Model):
 
 
 class SelfieAnalysisDetail(models.Model):
-    """
-    ERD: selfie_analysis_detail (셀카분석상세)
-    벤더 응답의 output 배열(region/type/score)을 거의 1:1로 저장한다.
-    face_part_code/metric_code는 현재 벤더(API) 원본 코드 그대로이며, 서비스 공통 코드로의
-    매핑은 미확정 상태다(기획 문서 기준).
-    """
-
     detail_id = models.BigAutoField(primary_key=True)
     analysis = models.ForeignKey(
         SelfieAnalysis, on_delete=models.CASCADE, related_name="details",
         db_column="analysis_id",
     )
-    face_part_code = models.CharField(max_length=30)
     metric_code = models.CharField(max_length=30)
     metric_value = models.DecimalField(max_digits=6, decimal_places=2)
     metric_unit = models.CharField(max_length=10, null=True, blank=True)
@@ -68,4 +61,4 @@ class SelfieAnalysisDetail(models.Model):
         db_table = "selfie_analysis_detail"
 
     def __str__(self):
-        return f"{self.face_part_code}/{self.metric_code}={self.metric_value}"
+        return f"{self.metric_code}={self.metric_value}"

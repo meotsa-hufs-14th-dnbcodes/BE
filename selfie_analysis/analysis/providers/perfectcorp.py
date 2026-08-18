@@ -2,9 +2,10 @@
 PerfectCorp (YouCam) AI Skin Analysis API v2.1 클라이언트.
 
 확인된 사항 (docs.perfectcorp.com 문서 기준):
-  - POST /s2s/v2.1/task/skin-analysis            : 분석 작업 시작, task_id 반환
-  - GET  /s2s/v2.1/task/skin-analysis/{task_id}  : 상태 폴링, task_status(running/success/error)
+  - POST /s2s/v2.0/task/skin-analysis            : 분석 작업 시작, task_id 반환
+  - GET  /s2s/v2.0/task/skin-analysis/{task_id}  : 상태 폴링, task_status(running/success/error)
   - 인증: Authorization: Bearer <API_KEY> 헤더
+  - v2.1은 유료 결제 플랜 전용이라 v2.0으로 고정.
 
 미확인 사항 (파일 업로드):
   - "File API"에 요청하면 file_id와 업로드용 requests[].url을 응답으로 받고,
@@ -26,6 +27,12 @@ from .errors import map_provider_error
 
 class PerfectCorpConfigError(RuntimeError):
     pass
+
+
+def _to_metric(item: dict) -> SkinMetric:
+    # 대부분 지표는 ui_score(0-100 정규화)로 오고, "all"/"skin_age"만 score로 온다.
+    score = item["ui_score"] if "ui_score" in item else item["score"]
+    return SkinMetric(metric_type=item["type"], score=float(score))
 
 
 class PerfectCorpProvider(SkinAnalysisProvider):
@@ -59,9 +66,18 @@ class PerfectCorpProvider(SkinAnalysisProvider):
                 "PerfectCorp File API의 정확한 엔드포인트를 확인해 .env에 설정하세요."
             )
 
+        extension = content_type.split("/")[-1]
         resp = self._session.post(
             f"{self.base_url}{self.file_upload_path}",
-            json={"files": [{"content_type": content_type}]},
+            json={
+                "files": [
+                    {
+                        "content_type": content_type,
+                        "file_name": f"selfie.{extension}",
+                        "file_size": len(image_bytes),
+                    }
+                ]
+            },
             timeout=30,
         )
         resp.raise_for_status()
@@ -80,10 +96,10 @@ class PerfectCorpProvider(SkinAnalysisProvider):
 
     def start_analysis(self, file_id: str) -> str:
         resp = self._session.post(
-            f"{self.base_url}/s2s/v2.1/task/skin-analysis",
+            f"{self.base_url}/s2s/v2.0/task/skin-analysis",
             json={
+                "src_file_id": file_id,
                 "dst_actions": self.dst_actions,
-                "body": {"src_file_id": file_id},
                 "format": "json",
             },
             timeout=30,
@@ -93,7 +109,7 @@ class PerfectCorpProvider(SkinAnalysisProvider):
 
     def poll(self, task_id: str) -> AnalysisResult:
         resp = self._session.get(
-            f"{self.base_url}/s2s/v2.1/task/skin-analysis/{task_id}", timeout=30
+            f"{self.base_url}/s2s/v2.0/task/skin-analysis/{task_id}", timeout=30
         )
         resp.raise_for_status()
         payload = resp.json()
@@ -101,15 +117,8 @@ class PerfectCorpProvider(SkinAnalysisProvider):
         status = data["task_status"]
 
         if status == "success":
-            metrics = [
-                SkinMetric(
-                    region=item["region"],
-                    metric_type=item["type"],
-                    score=float(item["score"]),
-                    unit=item.get("unit"),
-                )
-                for item in data.get("output", [])
-            ]
+            output = data.get("results", {}).get("output", [])
+            metrics = [_to_metric(item) for item in output if item["type"] != "resize_image"]
             return AnalysisResult(status="success", metrics=metrics, raw=payload)
 
         if status == "error":

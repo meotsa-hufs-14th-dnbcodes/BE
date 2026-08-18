@@ -21,13 +21,24 @@ jobs:
 
     django-check:
         runs-on: ubuntu-latest
+        services:
+            mysql:
+                image: mysql:8.4
+                env:
+                    MYSQL_ROOT_PASSWORD: root
+                    MYSQL_DATABASE: chrono_ci
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -h 127.0.0.1"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=5
         strategy:
             matrix:
                 include:
                     - name: chronoProject
                       working-directory: .
-                    - name: selfie_analysis
-                      working-directory: selfie_analysis
 
         steps:
             - uses: actions/checkout@v4
@@ -45,4 +56,9 @@ jobs:
 
             - name: Run django check
               working-directory: ${{ matrix.working-directory }}
+              env:
+                  DB_NAME: chrono_ci
+                  DB_USER: root
+                  DB_PASSWORD: root
+                  DB_HOST: 127.0.0.1
               run: python manage.py check

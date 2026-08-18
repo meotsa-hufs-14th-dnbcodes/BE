@@ -75,7 +75,6 @@ def run_skin_analysis(self, analysis_id: int, encrypted_key: str, nonce: str, ci
         [
             SelfieAnalysisDetail(
                 analysis=analysis,
-                face_part_code=metric.region,
                 metric_code=metric.metric_type,
                 metric_value=metric.score,
                 metric_unit=metric.unit,
