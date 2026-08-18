@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'proc',
     'rest_framework.authtoken',
     'accounts',
+    'checklist',
 ]
 
 MIDDLEWARE = [
