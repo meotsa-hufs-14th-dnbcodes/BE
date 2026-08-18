@@ -4,7 +4,6 @@ from rest_framework import status, generics
 from .models import Category, ProcedureRecord
 from .serializers import CategoryProcedureSerializer, ProcedureRecordCreateSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.permissions import IsAuthenticated
 
 class CategoryProcedureListView(APIView):
     def get(self, request):
