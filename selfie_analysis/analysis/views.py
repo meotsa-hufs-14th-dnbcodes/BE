@@ -1,19 +1,27 @@
+import logging
+
+from django.conf import settings
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from standardwebhooks.webhooks import Webhook, WebhookVerificationError
 
 from .models import AnalysisStatus, SelfieAnalysis
 from .permissions import HasServiceToken
 from .serializers import SelfieAnalysisSerializer, SelfieUploadSerializer
-from .tasks import run_skin_analysis
+from .tasks import complete_skin_analysis, start_skin_analysis
+
+logger = logging.getLogger(__name__)
 
 
 class SelfieAnalysisCreateView(APIView):
     """
-    SELFIE02(셀카 촬영 및 업로드): 암호화된 셀카를 받아 분석을 큐에 올린다.
-    분석 자체는 몇 초~몇십 초 걸릴 수 있으므로 절대 동기로 기다리지 않고,
-    즉시 202 + analysis_id만 돌려준다. 실제 결과는 상태 조회 엔드포인트를 폴링해서 받는다.
+    SELFIE02(셀카 촬영 및 업로드): 암호화된 셀카를 받아 분석을 시작한다.
+    복호화~벤더 분석 시작까지는 이 요청 안에서 동기로 처리하고(수 초),
+    실제 분석 완료는 PerfectCorp webhook을 통해 비동기로 알려온다.
+    즉시 202 + analysis_id를 돌려주고, 최종 결과는 상태 조회 엔드포인트로 확인한다.
     """
 
     permission_classes = [HasServiceToken]
@@ -29,7 +37,7 @@ class SelfieAnalysisCreateView(APIView):
             status=AnalysisStatus.PENDING,
         )
 
-        run_skin_analysis.delay(
+        start_skin_analysis(
             analysis.analysis_id,
             payload["encrypted_key"],
             payload["nonce"],
@@ -50,3 +58,32 @@ class SelfieAnalysisDetailView(RetrieveAPIView):
     serializer_class = SelfieAnalysisSerializer
     lookup_url_kwarg = "analysis_id"
     lookup_field = "analysis_id"
+
+
+class PerfectCorpWebhookView(APIView):
+    """
+    PerfectCorp이 분석 완료(success/error) 시 호출하는 webhook 수신 엔드포인트.
+    호출 주체가 메인 서버가 아니라 PerfectCorp이므로 HasServiceToken이 아니라
+    Standard Webhooks 서명(HMAC-SHA256)으로 검증한다.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        headers = {
+            "webhook-id": request.headers.get("webhook-id", ""),
+            "webhook-timestamp": request.headers.get("webhook-timestamp", ""),
+            "webhook-signature": request.headers.get("webhook-signature", ""),
+        }
+
+        wh = Webhook(settings.PERFECTCORP_WEBHOOK_SECRET)
+        try:
+            payload = wh.verify(request.body, headers)
+        except WebhookVerificationError:
+            logger.warning("PerfectCorp webhook signature verification failed")
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        task_id = payload["data"]["task_id"]
+        complete_skin_analysis(task_id)
+
+        return Response(status=status.HTTP_200_OK)

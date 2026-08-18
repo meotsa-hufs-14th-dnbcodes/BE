@@ -36,7 +36,7 @@ class SelfieAnalysis(models.Model):
     # 폴링/재시도/디버깅을 위한 벤더 호출 추적용. 메인 서버 스키마와는 무관
     provider = models.CharField(max_length=30, null=True, blank=True)
     provider_file_id = models.CharField(max_length=100, null=True, blank=True)
-    provider_task_id = models.CharField(max_length=100, null=True, blank=True)
+    provider_task_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

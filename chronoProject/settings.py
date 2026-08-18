@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'accounts',
     'checklist',
+    'selfie',
 ]
 
 MIDDLEWARE = [
@@ -113,6 +114,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+SELFIE_ANALYSIS_BASE_URL = config('SELFIE_ANALYSIS_BASE_URL', default='http://127.0.0.1:8001')
+INTERNAL_SERVICE_TOKEN = config('INTERNAL_SERVICE_TOKEN', default='')
+
 
 
 # Internationalization
