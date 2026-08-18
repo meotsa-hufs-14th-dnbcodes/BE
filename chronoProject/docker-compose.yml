@@ -27,7 +27,7 @@ services:
             - '8001:8001'
         restart: always
         networks:
-            - server
+            - app_net
 
     nginx:
         image: nginx:latest
@@ -57,4 +57,5 @@ services:
 
 networks:
     server:
-        driver: bridge
+    app_net:
+        external: true
