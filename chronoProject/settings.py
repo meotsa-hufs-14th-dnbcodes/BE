@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-only-chronoprojec
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', '43.200.168.11', 'nyam17.site']
 
@@ -42,9 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'proc',
     'rest_framework',
+    'proc',
     'rest_framework.authtoken',
     'accounts',
 ]
