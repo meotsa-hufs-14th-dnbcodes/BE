@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class SkinMetric:
-    region: str
     metric_type: str
     score: float
     unit: str | None = None

@@ -1,13 +1,3 @@
-"""
-Django settings for selfie_analysis project — the "이미지분석 마이크로서비스".
-
-메인 chronoProject 서버와 의도적으로 분리된 별도 배포 단위다. 목적은 원본 셀카 이미지를
-메인 서버에 절대 보내지 않는 것 — 이 서비스만 이미지를 만지고, 나머지 서비스는 결과 수치만
-주고받는다. DB는 ERD상 selfie_analysis/selfie_analysis_detail 테이블을 메인 서버와 공유하는
-것을 기본 가정으로 두되(그래야 보존지수 계산 시 조인이 가능하다), 로컬 개발 편의를 위해
-DATABASE_URL 미설정 시 sqlite로 폴백한다.
-"""
-
 import os
 from pathlib import Path
 
@@ -113,6 +103,10 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+
+# PerfectCorp 이미지 업로드 제한(10MB)을 base64 인코딩 오버헤드(~1.33배)까지 감안해 열어둠.
+# Django 기본값(2.5MB)로는 일반 폰 사진도 못 받는다.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
 
 # --- DRF ---
 REST_FRAMEWORK = {

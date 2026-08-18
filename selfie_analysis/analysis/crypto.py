@@ -39,7 +39,7 @@ def _load_private_key():
 def decrypt_selfie_payload(
     encrypted_key_b64: str, nonce_b64: str, ciphertext_b64: str
 ) -> bytes:
-    """클라이언트가 보낸 base64 필드 3개를 원본 이미지 바이트로 복원한다."""
+    """클라이언트가 보낸 base64 필드 3개를 원본 이미지 바이트로 복원"""
 
     try:
         encrypted_key = base64.b64decode(encrypted_key_b64)

@@ -20,7 +20,7 @@ class SelfieUploadSerializer(serializers.Serializer):
 class SelfieAnalysisDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = SelfieAnalysisDetail
-        fields = ["face_part_code", "metric_code", "metric_value", "metric_unit"]
+        fields = ["metric_code", "metric_value", "metric_unit"]
 
 
 class SelfieAnalysisSerializer(serializers.ModelSerializer):

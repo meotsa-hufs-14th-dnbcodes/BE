@@ -6,7 +6,7 @@ from .models import SelfieAnalysis, SelfieAnalysisDetail
 class SelfieAnalysisDetailInline(admin.TabularInline):
     model = SelfieAnalysisDetail
     extra = 0
-    readonly_fields = ["face_part_code", "metric_code", "metric_value", "metric_unit"]
+    readonly_fields = ["metric_code", "metric_value", "metric_unit"]
     can_delete = False
 
 
