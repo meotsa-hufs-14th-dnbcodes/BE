@@ -5,6 +5,8 @@ services:
         image: chrono-web
         container_name: web
         command: bash -c "gunicorn chronoProject.wsgi:application -b 0.0.0.0:8000"
+        env_file:
+            - .env
         ports:
             - '8000:8000'
         restart: always
@@ -12,6 +14,20 @@ services:
             - ./static:/app/static
         networks:
             - server
+
+    selfie:
+        build:
+            context: ../selfie_analysis
+        image: selfie-web
+        container_name: selfie
+        command: bash -c "gunicorn selfie_analysis.wsgi:application -b 0.0.0.0:8001"
+        env_file:
+            - ../selfie_analysis/.env
+        ports:
+            - '8001:8001'
+        restart: always
+        networks:
+            - app_net
 
     nginx:
         image: nginx:latest
@@ -27,6 +43,7 @@ services:
             - '443:443'
         depends_on:
             - web
+            - selfie
         networks:
             - server
         command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
@@ -40,4 +57,5 @@ services:
 
 networks:
     server:
-        driver: bridge
+    app_net:
+        external: true
