@@ -1,3 +1,4 @@
+import logging
 from datetime import date, timedelta
 from django.utils import timezone
 from rest_framework import status
@@ -11,8 +12,13 @@ from .serializers import (
     DailyCheckCreateResponseSerializer,
     WeeklyChecklistResponseSerializer
 )
+from care.services import refresh_today_care
+from notifications.services import notify_today_care
+
+logger = logging.getLogger(__name__)
 
 class ChecklistAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = DailyCheckCreateRequestSerializer(data=request.data)
@@ -27,6 +33,12 @@ class ChecklistAPIView(APIView):
             check_date=today,
             defaults=validated_data
         )
+
+        try:
+            recommendation = refresh_today_care(user, daily_check)
+            notify_today_care(daily_check, recommendation)
+        except Exception:
+            logger.exception("오늘의 케어 추천/알림 갱신 실패 (checklist_id=%s)", daily_check.checklist_id)
 
         response_data = DailyCheckCreateResponseSerializer(daily_check).data
 
