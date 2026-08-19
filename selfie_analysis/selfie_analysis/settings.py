@@ -21,7 +21,6 @@ env = environ.Env(
     PERFECTCORP_WEBHOOK_SECRET=(str, ""),
     PERFECTCORP_POLL_INTERVAL_SECONDS=(float, 3.0),
     SKIN_ANALYSIS_POLL_TIMEOUT_SECONDS=(float, 120.0),
-    SELFIE_UPLOAD_RSA_PRIVATE_KEY=(str, ""),
     INTERNAL_SERVICE_TOKEN=(str, ""),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))

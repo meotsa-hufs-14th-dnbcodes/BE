@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from .crypto import DecryptionError, decrypt_selfie_payload
+import base64
 from .models import AnalysisStatus, FailReason, SelfieAnalysis, SelfieAnalysisDetail
 from .providers import get_provider
 from .providers.errors import map_provider_error
@@ -13,9 +13,9 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-def start_skin_analysis(analysis_id: int, encrypted_key: str, nonce: str, ciphertext: str):
+def start_skin_analysis(analysis_id: int, image_b64: str):
     """
-    업로드 요청 안에서 동기로 실행: 복호화 → 벤더 업로드 → 분석 시작.
+    업로드 요청 안에서 동기로 실행: base64 디코딩 - 벤더 업로드 - 분석 시작
     실제 분석 완료/결과 저장은 PerfectCorp webhook이 오면 complete_skin_analysis가 처리
     """
     try:
@@ -25,9 +25,9 @@ def start_skin_analysis(analysis_id: int, encrypted_key: str, nonce: str, cipher
         return
 
     try:
-        image_bytes = decrypt_selfie_payload(encrypted_key, nonce, ciphertext)
-    except DecryptionError as exc:
-        logger.warning("decrypt failed for analysis %s: %s", analysis_id, exc)
+        image_bytes = base64.b64decode(image_b64)
+    except Exception as exc:
+        logger.warning("base64 decode failed for analysis %s: %s", analysis_id, exc)
         _mark_fail(analysis, FailReason.UPLOAD_FAILED)
         return
 
@@ -42,7 +42,6 @@ def start_skin_analysis(analysis_id: int, encrypted_key: str, nonce: str, cipher
         _mark_fail(analysis, FailReason.UPLOAD_FAILED)
         return
     finally:
-        # 벤더 업로드가 끝났으니(성공하든 실패하든) 원본 바이트 참조를 더 들고 있지 않는다.
         del image_bytes
 
     analysis.provider_file_id = file_id
