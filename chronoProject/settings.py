@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'proc',
     'rest_framework.authtoken',
     'accounts',
+    'checklist',
     'selfie',
 ]
 
@@ -128,7 +129,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = False
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
