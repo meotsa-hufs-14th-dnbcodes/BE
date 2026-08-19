@@ -42,4 +42,5 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('checklist/', include('checklist.urls')),
     path('selfie/', include('selfie.urls')),
+    path('preservation/', include('preservation.urls')),
 ]

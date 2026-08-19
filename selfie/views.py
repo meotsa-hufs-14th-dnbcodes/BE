@@ -39,11 +39,10 @@ class SelfieAnalysisCreateView(APIView):
         result = client.create_analysis(
             user_id=request.user.id,
             captured_at=data.get("captured_at"),
-            encrypted_key=data.get("encrypted_key"),
-            nonce=data.get("nonce"),
-            ciphertext=data.get("ciphertext"),
+            image=data.get("image"),
         )
         return Response(result, status=status.HTTP_202_ACCEPTED)
+
 
 
 class SelfieAnalysisDetailView(APIView):

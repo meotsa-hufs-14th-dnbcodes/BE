@@ -39,9 +39,7 @@ class SelfieAnalysisCreateView(APIView):
 
         start_skin_analysis(
             analysis.analysis_id,
-            payload["encrypted_key"],
-            payload["nonce"],
-            payload["ciphertext"],
+            payload["image"],
         )
 
         return Response(
