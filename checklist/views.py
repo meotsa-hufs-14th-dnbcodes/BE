@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -41,9 +42,16 @@ class ChecklistAPIView(APIView):
 
 
 class WeeklyChecklistAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         user = request.user
-        today = date.today()
+        today = timezone.localdate()
+
+        join_date = user.date_joined.date()
+
+        days_since_joined = (today - join_date).days
+        current_day = days_since_joined + 1
 
         start_of_week = today - timedelta(days=today.weekday())
         end_of_week = start_of_week + timedelta(days=6)
@@ -56,7 +64,7 @@ class WeeklyChecklistAPIView(APIView):
 
         weekly_records = []
         is_checklist_done_today = False
-        current_day_order = today.weekday() + 1
+
         for i in range(7):
             cur_date = start_of_week + timedelta(days=i)
             is_today = (cur_date == today)
@@ -73,7 +81,7 @@ class WeeklyChecklistAPIView(APIView):
             })
 
         result = {
-            "currentDay": current_day_order,
+            "currentDay": current_day,             
             "isChecklistDone": is_checklist_done_today,
             "weeklyRecords": weekly_records
         }

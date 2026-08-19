@@ -33,7 +33,6 @@ class DailyCheckCreateResponseSerializer(serializers.ModelSerializer):
         fields = ['checklistId', 'userId', 'checkDate', 'isCompleted']
 
     def get_isCompleted(self, obj):
-        # 등록 시 완료 여부 (비즈니스 룰에 맞춰 True 반환)
         return True
 
 
