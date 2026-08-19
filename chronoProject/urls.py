@@ -44,4 +44,5 @@ urlpatterns = [
     path('selfie/', include('selfie.urls')),
     path('preservation/', include('preservation.urls')),
     path('care/', include('care.urls')),
+    path('notifications/', include('notifications.urls')),
 ]
