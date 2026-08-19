@@ -35,12 +35,7 @@ def _duration_days(procedure_record) -> int:
     return months * DAYS_PER_MONTH
 
 
-def compute_E(duration_days: int, elapsed_days: int) -> float:
-    ratio = min(elapsed_days / duration_days, 1.0)
-    return 100 - (100 - FLOOR) * ratio
-
-
-FLOOR = 20  # 시술 만료 시점 잔존 기대치
+FLOOR = 0
 
 
 @dataclass
@@ -72,10 +67,10 @@ def compute_A(metrics: dict, category_code: str) -> float:
     return sum(values) / len(values)
 
 
-def compute_E(category_code: str, elapsed_days: int) -> float:
-    duration = CATEGORY_DURATION_DAYS.get(category_code, 180)
-    ratio = min(elapsed_days / duration, 1.0)
+def compute_E(duration_days: int, elapsed_days: int) -> float:
+    ratio = min(elapsed_days / duration_days, 1.0)
     return 100 - (100 - FLOOR) * ratio
+
 
 
 def compute_checklist_adjustment(
