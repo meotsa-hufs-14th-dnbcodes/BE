@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'proc',
     'rest_framework.authtoken',
     'accounts',
+    'checklist',
     'selfie',
     'preservation'
 ]
@@ -129,7 +130,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = False
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -154,6 +155,27 @@ REST_FRAMEWORK = {
         'accounts.authentication.BearerAuthentication',
     ],
     'EXCEPTION_HANDLER': 'accounts.exceptions.custom_exception_handler',
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
 }
 
 try:
