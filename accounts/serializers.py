@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
+from proc.serializers import ProcedureRecordDateSerializer
+
 from .models import User
 
 
@@ -51,6 +53,12 @@ class LoginSerializer(serializers.Serializer):
 
 class MyPageSerializer(serializers.ModelSerializer):
 
+    procedureRecords = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ["nickname", "gender", "email"]
+        fields = ["nickname", "gender", "email", "procedureRecords"]
+
+    def get_procedureRecords(self, user):
+        records = user.procedure_records.filter(is_deleted=False)
+        return ProcedureRecordDateSerializer(records, many=True).data

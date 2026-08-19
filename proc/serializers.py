@@ -73,4 +73,13 @@ class ProcedureRecordCreateSerializer(serializers.ModelSerializer):
             validated_data['user'] = request.user
 
         return super().create(validated_data)
-    
+
+
+class ProcedureRecordDateSerializer(serializers.ModelSerializer):
+    procName = serializers.CharField(source='proc_name', read_only=True)
+    procedureDate = serializers.DateField(source='procedure_date', read_only=True)
+    hospitalName = serializers.CharField(source='hospital_name', read_only=True)
+
+    class Meta:
+        model = ProcedureRecord
+        fields = ['procName', 'procedureDate', 'hospitalName']
