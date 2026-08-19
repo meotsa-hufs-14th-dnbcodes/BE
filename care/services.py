@@ -1,11 +1,3 @@
-"""
-'오늘의 케어 추천' 파이프라인 연결부.
-
-흐름: checklist.ChecklistAPIView.post() -> refresh_today_care() (Rule Engine ->
-Action Catalog 선택 -> LLM 설명 생성 -> 캐시 저장) -> care.TodayCareView.get() ->
-get_today_care() (캐시 조회만, LLM 재호출 없음).
-"""
-
 import logging
 from datetime import date
 
@@ -65,7 +57,6 @@ def _catalog_item(action_id: str, text: str) -> dict:
 
 
 def _generate_items_and_summary(ctx: actions.RuleContext, action_ids: list[str], is_default_routine: bool):
-    """LLM 호출을 시도하고, 실패하거나 응답이 어긋나면 카탈로그 원문으로 대체한다."""
 
     try:
         llm_context = {
@@ -93,7 +84,7 @@ def _generate_items_and_summary(ctx: actions.RuleContext, action_ids: list[str],
             )
 
         items = [_catalog_item(action_id, text_by_id[action_id]) for action_id in action_ids]
-        summary = str(result["summary"])[:250]
+        summary = str(result["summary"])[:500]
         source = (
             TodayCareRecommendation.SOURCE_DEFAULT_ROUTINE
             if is_default_routine
