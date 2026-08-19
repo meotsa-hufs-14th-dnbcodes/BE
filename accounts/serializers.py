@@ -50,7 +50,8 @@ class LoginSerializer(serializers.Serializer):
 
 
 class MyPageSerializer(serializers.ModelSerializer):
+    userId = serializers.IntegerField(source="id", read_only=True)
 
     class Meta:
         model = User
-        fields = ["nickname", "gender", "email"]
+        fields = ["userId", "email", "nickname", "gender", "age"]
