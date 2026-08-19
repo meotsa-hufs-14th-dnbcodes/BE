@@ -52,12 +52,13 @@ class LoginSerializer(serializers.Serializer):
 
 
 class MyPageSerializer(serializers.ModelSerializer):
+    userId = serializers.IntegerField(source="id", read_only=True)
 
     procedureRecords = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["nickname", "gender", "email", "procedureRecords"]
+        fields = ["userId", "nickname", "age", "gender", "email", "procedureRecords"]
 
     def get_procedureRecords(self, user):
         records = user.procedure_records.filter(is_deleted=False)

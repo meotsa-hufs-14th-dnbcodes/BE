@@ -55,10 +55,25 @@ class LoginView(APIView):
 
 
 class MyPageView(APIView):
-
     authentication_classes = [BearerAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response(
+                {
+                    "status": 401,
+                    "code": "UNAUTHORIZED",
+                    "message": "인증이 필요합니다.",
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
         serializer = MyPageSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "status": 200,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )

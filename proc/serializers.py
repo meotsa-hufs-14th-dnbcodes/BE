@@ -27,6 +27,7 @@ class ProcedureRecordCreateSerializer(serializers.ModelSerializer):
 
     recordId = serializers.IntegerField(source='record', read_only=True)
     userId = serializers.IntegerField(source='user_id', read_only=True)
+    categoryId = serializers.IntegerField(source='procedure.category_id', read_only=True)
     procCode = serializers.CharField(source='procedure.proc_code', read_only=True)
     createdAt = serializers.DateTimeField(source='created_at', format='%Y-%m-%dT%H:%M:%S', read_only=True)
     isDeleted = serializers.BooleanField(source='is_deleted', read_only=True)
@@ -36,6 +37,7 @@ class ProcedureRecordCreateSerializer(serializers.ModelSerializer):
         fields = [
             'recordId',
             'userId',
+            'categoryId',
             'procCode',
             'procName',
             'procedureDate',
