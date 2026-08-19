@@ -6,6 +6,7 @@ from .models import SelfieAnalysis, SelfieAnalysisDetail
 class SelfieUploadSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
     captured_at = serializers.DateTimeField()
+    image = serializers.CharField()
 
 
 class SelfieAnalysisDetailSerializer(serializers.ModelSerializer):
