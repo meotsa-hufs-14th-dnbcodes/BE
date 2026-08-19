@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'accounts',
     'checklist',
     'selfie',
-    'preservation'
+    'preservation',
+    'care'
 ]
 
 MIDDLEWARE = [
@@ -118,6 +119,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 SELFIE_ANALYSIS_BASE_URL = config('SELFIE_ANALYSIS_BASE_URL', default='http://127.0.0.1:8001')
 INTERNAL_SERVICE_TOKEN = config('INTERNAL_SERVICE_TOKEN', default='')
+
+# 오늘의 케어 추천(care 앱)에서 사용하는 OpenAI 설정
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')
 
 
 
