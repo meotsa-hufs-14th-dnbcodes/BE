@@ -25,7 +25,7 @@ class ProcedureRecordCreateView(generics.ListCreateAPIView):
         return ProcedureRecord.objects.filter(
             user=self.request.user, 
             is_deleted=False
-        ).select_related('procedure')
+        ).select_related('procedure__category')
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
