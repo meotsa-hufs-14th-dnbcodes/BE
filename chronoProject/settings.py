@@ -51,7 +51,9 @@ INSTALLED_APPS = [
     'checklist',
     'selfie',
     'preservation',
-    'care'
+    'care', 
+    'notifications', 
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -187,3 +189,27 @@ try:
     from .local_settings import *
 except ImportError:
     pass
+
+
+OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')
+
+from celery.schedules import crontab 
+
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Seoul'
+CELERY_ENABLE_UTC = False
+
+CELERY_BEAT_SCHEDULE = {
+    'generate-retreatment-notifications': {
+        'task': 'notifications.tasks.generate_retreatment_notifications_task',
+        'schedule': crontab(hour=9, minute=0),  
+    },
+    'generate-weekly-report-notifications': {
+        'task': 'notifications.tasks.generate_weekly_report_notifications_task',
+        'schedule': crontab(hour=9, minute=0, day_of_week=1),  
+}
+}
