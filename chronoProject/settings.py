@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'accounts',
     'checklist',
     'selfie',
-    'preservation'
+    'preservation',
+    'care'
 ]
 
 MIDDLEWARE = [
