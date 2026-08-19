@@ -35,7 +35,7 @@ def _duration_days(procedure_record) -> int:
     return months * DAYS_PER_MONTH
 
 
-FLOOR = 0
+FLOOR = 20
 
 
 @dataclass
