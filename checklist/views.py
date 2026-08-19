@@ -1,3 +1,4 @@
+import logging
 from datetime import date, timedelta
 from django.utils import timezone
 from rest_framework import status
@@ -11,8 +12,12 @@ from .serializers import (
     DailyCheckCreateResponseSerializer,
     WeeklyChecklistResponseSerializer
 )
+from care.services import refresh_today_care
+
+logger = logging.getLogger(__name__)
 
 class ChecklistAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = DailyCheckCreateRequestSerializer(data=request.data)
@@ -27,6 +32,14 @@ class ChecklistAPIView(APIView):
             check_date=today,
             defaults=validated_data
         )
+
+        # 체크리스트가 등록/수정될 때마다 Rule Engine -> Action 선택 -> LLM 설명 생성을
+        # 다시 돌려 '오늘의 케어 추천'을 캐시한다. (GET /care/today/ 는 이 캐시만 읽음)
+        # 이 부가 기능이 실패해도 체크리스트 저장 자체는 성공으로 응답해야 하므로 여기서 격리한다.
+        try:
+            refresh_today_care(user, daily_check)
+        except Exception:
+            logger.exception("오늘의 케어 추천 갱신 실패 (checklist_id=%s)", daily_check.checklist_id)
 
         response_data = DailyCheckCreateResponseSerializer(daily_check).data
 

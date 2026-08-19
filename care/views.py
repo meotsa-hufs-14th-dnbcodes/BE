@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from proc.models import ProcedureRecord
 from checklist.models import DailyCheck
+from . import services
 from .models import Product, CategoryProductMapping
-from .serializers import RecommendedProductSerializer
+from .serializers import RecommendedProductSerializer, TodayCareSerializer
 
 PRODUCT_CORE_REBUILD = 1
 PRODUCT_HYDRO_SOOTHING = 2
@@ -60,16 +61,16 @@ class ProductRecommendationView(APIView):
 
         today_check = DailyCheck.objects.filter(user=user, check_date=today).first()
         if today_check:
-            if getattr(today_check, 'drank_alcohol', False) or getattr(today_check, 'heavy_exercise', False):
+            if today_check.drinking_yn or today_check.intense_exercise_yn:
                 add_score(PRODUCT_HYDRO_SOOTHING, 2)
 
-            if getattr(today_check, 'heavy_exercise', False):
+            if today_check.intense_exercise_yn:
                 add_score(PRODUCT_CLARIFY_TONER, 2)
 
-            if not getattr(today_check, 'applied_cream', False) or getattr(today_check, 'smoked', False):
+            if not today_check.regen_cream_yn or today_check.smoking_yn:
                 add_score(PRODUCT_CORE_REBUILD, 2)
 
-            if not getattr(today_check, 'used_sunscreen', False):
+            if not today_check.uv_protection_yn:
                 add_score(PRODUCT_SUN_ESSENCE, 2)
 
         sorted_products = sorted(
@@ -85,4 +86,25 @@ class ProductRecommendationView(APIView):
             "code": "SUCCESS",
             "message": "추천 제품 목록 조회가 완료되었습니다.",
             "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+
+class TodayCareView(APIView):
+    """
+    GET /care/today/
+    Rule Engine -> Action Catalog 선택 -> LLM 설명 생성 파이프라인의 결과를 조회한다.
+    LLM은 여기서 호출하지 않고, checklist 등록/수정 시점에 캐시된 결과만 읽는다.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        today_care = services.get_today_care(request.user)
+        data = TodayCareSerializer(today_care).data
+
+        return Response({
+            "isSuccess": True,
+            "code": "SUCCESS",
+            "message": "오늘의 케어 추천을 조회했습니다.",
+            "data": data,
         }, status=status.HTTP_200_OK)
