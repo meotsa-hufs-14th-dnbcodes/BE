@@ -12,7 +12,7 @@ def _headers():
 
 def create_analysis(user_id, captured_at, image):
     resp = requests.post(
-        f"{settings.SELFIE_ANALYSIS_BASE_URL}/selfie-analyses/",
+        f"{settings.SELFIE_ANALYSIS_BASE_URL}/api/v1/selfie-analyses/",
         json={
             "user_id": user_id,
             "captured_at": captured_at,
@@ -29,7 +29,7 @@ def create_analysis(user_id, captured_at, image):
 
 def get_analysis(analysis_id):
     resp = requests.get(
-        f"{settings.SELFIE_ANALYSIS_BASE_URL}/selfie-analyses/{analysis_id}/",
+        f"{settings.SELFIE_ANALYSIS_BASE_URL}/api/v1/selfie-analyses/{analysis_id}/",
         headers=_headers(),
         timeout=5,
     )
