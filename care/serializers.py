@@ -21,3 +21,17 @@ class RecommendedProductSerializer(serializers.ModelSerializer):
         if hasattr(obj.image, 'url'):
             return request.build_absolute_uri(obj.image.url) if request else obj.image.url
         return image_str
+
+
+class TodayCareActionItemSerializer(serializers.Serializer):
+    actionId = serializers.CharField()
+    name = serializers.CharField()
+    text = serializers.CharField()
+    effect = serializers.CharField()
+    duration = serializers.CharField()
+
+
+class TodayCareSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=["NOT_CHECKED", "READY"])
+    summary = serializers.CharField()
+    items = TodayCareActionItemSerializer(many=True)

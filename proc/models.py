@@ -20,6 +20,15 @@ class Procedure(models.Model):
         help_text="지속 기간(개월 단위, 예: 1, 6, 12)",
         verbose_name="지속기간(개월)"
     )
+    reminder_duration_days = models.PositiveIntegerField(
+        default=180,
+        help_text=(
+            "재시술 알림 계산 전용 필드(일 단위). 기획서 '기준 지속기간'이 범위값"
+            "(예: 4~6주, 9~12개월)인 경우 짧은 쪽(최솟값)을 일수로 환산해 저장한다."
+            "보존지수 감쇠 계산에 쓰는 proc_duration(개월)과는 별개 필드다."
+        ),
+        verbose_name="재시술 알림 기준일수",
+    )
 
     def __str__(self):
         return f"[{self.proc_code}] {self.proc_name} ({self.proc_duration}개월)"
