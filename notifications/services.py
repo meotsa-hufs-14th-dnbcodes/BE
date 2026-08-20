@@ -27,7 +27,7 @@ def _get_or_create(user_id, notification_type, dedupe_key, title, body, payload=
     )
 
 
-#재시술 알림
+# 재시술 알림
 def generate_retreatment_notifications(today: date = None) -> int:
     today = today or date.today()
     created_count = 0
@@ -71,7 +71,7 @@ def generate_retreatment_notifications(today: date = None) -> int:
     return created_count
 
 
-#오늘의 케어 알림
+# 오늘의 케어 알림
 def notify_today_care(daily_check, recommendation) -> Notification:
     items = recommendation.items or []
     if items:
@@ -97,7 +97,7 @@ def notify_today_care(daily_check, recommendation) -> Notification:
     )
     return notification
 
-#보존지수 리포트 알림 
+# 보존지수 리포트 알림 
 def _week_bounds(reference: date):
     monday = reference - timedelta(days=reference.weekday())
     next_monday = monday + timedelta(days=7)
