@@ -126,6 +126,7 @@ def _notify_chrono(analysis):
             settings.CHRONO_WEBHOOK_URL,
             json={
                 "user_id": analysis.user_id,
+                "analysis_id": analysis.analysis_id,
                 "status": analysis.status,
                 "fail_reason": analysis.fail_reason,
             },
