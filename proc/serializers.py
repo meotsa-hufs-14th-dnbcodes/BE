@@ -54,7 +54,15 @@ class ProcedureRecordCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        proc_name = attrs.get('proc_name', '').strip()
+        # PATCH 등 부분 수정에서 procName을 안 보낸 경우, 기존에 연결된
+        # Procedure를 그대로 유지한다 (재조회하지 않음).
+        if 'proc_name' not in attrs:
+            if self.instance is not None:
+                attrs['procedure'] = self.instance.procedure
+                return attrs
+            proc_name = ''
+        else:
+            proc_name = attrs.get('proc_name', '').strip()
 
         procedure = Procedure.objects.filter(proc_name=proc_name).first()
 
@@ -75,6 +83,10 @@ class ProcedureRecordCreateSerializer(serializers.ModelSerializer):
             validated_data['user'] = request.user
 
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('duplicateConfirm', None)
+        return super().update(instance, validated_data)
 
 
 class ProcedureRecordDateSerializer(serializers.ModelSerializer):
