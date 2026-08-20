@@ -32,6 +32,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', '43.200.168.11', 'nyam17.site']
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
+
+
 
 # Application definition
 
