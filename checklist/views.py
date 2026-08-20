@@ -14,6 +14,7 @@ from .serializers import (
 )
 from care.services import refresh_today_care
 from notifications.services import notify_today_care
+from selfie.services import handle_daily_check_saved
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,11 @@ class ChecklistAPIView(APIView):
             notify_today_care(daily_check, recommendation)
         except Exception:
             logger.exception("오늘의 케어 추천/알림 갱신 실패 (checklist_id=%s)", daily_check.checklist_id)
+
+        try:
+            handle_daily_check_saved(user, daily_check)
+        except Exception:
+            logger.exception("보존지수 자동 계산(대기열 확인) 실패 (checklist_id=%s)", daily_check.checklist_id)
 
         response_data = DailyCheckCreateResponseSerializer(daily_check).data
 

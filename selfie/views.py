@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 
 import hmac
 from django.conf import settings
-from . import notifications
+from django.contrib.auth import get_user_model
+from . import notifications, services
 
 
 class HasServiceToken(BasePermission):
@@ -20,11 +21,24 @@ class SelfieAnalysisWebhookView(APIView):
 
     def post(self, request):
         data = request.data
+        user_id = data.get("user_id")
+        analysis_status = data.get("status")
+        analysis_id = data.get("analysis_id")
+
         notifications.notify_analysis_done(
-            user_id=data.get("user_id"),
-            status=data.get("status"),
+            user_id=user_id,
+            status=analysis_status,
             fail_reason=data.get("fail_reason"),
         )
+
+        if analysis_status == "SUCCESS" and analysis_id is not None:
+            User = get_user_model()
+            try:
+                user = User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+                return Response(status=status.HTTP_200_OK)
+            services.handle_selfie_analysis_success(user, analysis_id)
+
         return Response(status=status.HTTP_200_OK)
 
 
