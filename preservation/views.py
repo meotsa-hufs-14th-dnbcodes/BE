@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from datetime import date
+from checklist.models import DailyCheck
 from proc.models import ProcedureRecord
 from . import services
 from .models import PreservationIndex
@@ -30,6 +32,7 @@ class PreservationIndexListCreateView(APIView):
         ]
         return Response(data)
 
+    
     def post(self, request):
         analysis_id = request.data.get("analysis_id")
         if not analysis_id:
@@ -38,20 +41,22 @@ class PreservationIndexListCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        required_fields = [
-            "smoking_yn", "drinking_yn", "uv_protection_yn",
-            "regen_cream_yn", "intense_exercise_yn",
-        ]
-
-        checklist_data = request.data.get("checklist")
-        if not isinstance(checklist_data, dict) or any(
-            field not in checklist_data for field in required_fields
-        ):
+        daily_check = DailyCheck.objects.filter(
+            user=request.user, check_date=date.today()
+        ).first()
+        if daily_check is None:
             return Response(
-                {"detail": f"checklist는 필수이며 다음 필드를 모두 포함해야 합니다: {required_fields}"},
+                {"detail": "오늘의 체크리스트가 먼저 등록되어야 합니다."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        checklist = services.ChecklistInput(**{f: checklist_data[f] for f in required_fields})
+
+        checklist = services.ChecklistInput(
+            smoking_yn=daily_check.smoking_yn,
+            drinking_yn=daily_check.drinking_yn,
+            uv_protection_yn=daily_check.uv_protection_yn,
+            regen_cream_yn=daily_check.regen_cream_yn,
+            intense_exercise_yn=daily_check.intense_exercise_yn,
+        )
 
         records = ProcedureRecord.objects.filter(
             user=request.user, is_deleted=False
