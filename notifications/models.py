@@ -7,10 +7,12 @@ class Notification(models.Model):
     TYPE_RETREATMENT = "RETREATMENT"
     TYPE_TODAY_CARE = "TODAY_CARE"
     TYPE_WEEKLY_REPORT = "WEEKLY_REPORT"
+    TYPE_ANALYSIS_DONE = "ANALYSIS_DONE"
     TYPE_CHOICES = [
         (TYPE_RETREATMENT, "재시술 알림"),
         (TYPE_TODAY_CARE, "오늘의 케어 알림"),
         (TYPE_WEEKLY_REPORT, "주간 보존지수 리포트"),
+        (TYPE_ANALYSIS_DONE, "셀카 분석 완료 알림"),
     ]
 
     user = models.ForeignKey(
