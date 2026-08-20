@@ -95,7 +95,7 @@ def _generate_items_and_summary(ctx: actions.RuleContext, action_ids: list[str],
     except openai_client.CareLLMError:
         logger.warning("care LLM 설명 생성 실패, 카탈로그 원문으로 대체합니다.", exc_info=True)
         items = [
-            _catalog_item(action_id, actions.ACTION_CATALOG[action_id]["effect"])
+            _catalog_item(action_id, actions.ACTION_CATALOG[action_id]["name"])
             for action_id in action_ids
         ]
         source = (
