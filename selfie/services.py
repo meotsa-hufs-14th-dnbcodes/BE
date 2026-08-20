@@ -23,6 +23,7 @@ def _run_calculation(user, analysis_id, daily_check):
         user=user, is_deleted=False
     ).select_related("procedure")
 
+    created = 0
     for record in records:
         try:
             preservation_services.calculate_preservation_index(
@@ -31,19 +32,30 @@ def _run_calculation(user, analysis_id, daily_check):
                 procedure_record=record,
                 checklist=checklist,
             )
+            created += 1
         except ValueError:
             logger.exception(
                 "보존지수 자동 계산 실패: user=%s analysis_id=%s record=%s",
                 user.id, analysis_id, record.pk,
             )
 
+    logger.warning(
+        "보존지수 자동 계산 완료: user=%s analysis_id=%s 생성=%s건",
+        user.id, analysis_id, created,
+    )
+
 
 def handle_selfie_analysis_success(user, analysis_id):
     """셀카 분석 SUCCESS 웹훅 수신 시 호출.
     오늘 체크리스트가 이미 있으면 바로 계산하고, 없으면 대기열에 저장해뒀다가
     checklist 쪽에서 체크리스트가 등록될 때 마저 처리하게 한다."""
+    logger.warning("handle_selfie_analysis_success 호출됨: user=%s analysis_id=%s", user.id, analysis_id)
+
     daily_check = DailyCheck.objects.filter(user=user, check_date=date.today()).first()
     if daily_check is None:
+        logger.warning(
+            "user=%s 오늘(%s) 체크리스트 없음 → 대기열에 저장", user.id, date.today()
+        )
         PendingPreservationCalc.objects.update_or_create(
             user=user,
             check_date=date.today(),
@@ -63,5 +75,8 @@ def handle_daily_check_saved(user, daily_check):
     if pending is None:
         return
 
+    logger.warning(
+        "대기 중이던 보존지수 계산 처리: user=%s analysis_id=%s", user.id, pending.analysis_id
+    )
     _run_calculation(user, pending.analysis_id, daily_check)
     pending.delete()
