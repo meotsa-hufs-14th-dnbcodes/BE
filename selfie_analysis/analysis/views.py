@@ -57,7 +57,6 @@ class SelfieAnalysisDetailView(RetrieveAPIView):
     lookup_url_kwarg = "analysis_id"
     lookup_field = "analysis_id"
 
-
 class PerfectCorpWebhookView(APIView):
     """
     PerfectCorp이 분석 완료(success/error) 시 호출하는 webhook 수신 엔드포인트.
@@ -81,35 +80,13 @@ class PerfectCorpWebhookView(APIView):
             logger.warning("PerfectCorp webhook signature verification failed")
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        task_id = payload["data"]["taskId"]
-        complete_skin_analysis(task_id)
-
-        return Response(status=status.HTTP_200_OK)
-
-class PerfectCorpWebhookView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        headers = {
-            "webhook-id": request.headers.get("webhook-id", ""),
-            "webhook-timestamp": request.headers.get("webhook-timestamp", ""),
-            "webhook-signature": request.headers.get("webhook-signature", ""),
-        }
-
-        wh = Webhook(settings.PERFECTCORP_WEBHOOK_SECRET)
-        try:
-            payload = wh.verify(request.body, headers)
-        except WebhookVerificationError:
-            logger.warning("PerfectCorp webhook signature verification failed")
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        logger.info("PerfectCorp webhook payload: %s", payload)  # 추가 — 실제 바디 확인용
+        logger.info("PerfectCorp webhook payload: %s", payload)
 
         try:
-            task_id = payload["data"]["task_id"]
+            task_id = payload["data"]["taskId"]
         except KeyError:
-            logger.error("PerfectCorp webhook에 task_id가 없습니다: %s", payload)
-            return Response(status=status.HTTP_200_OK)  # PerfectCorp 재시도 폭주 방지
+            logger.error("PerfectCorp webhook에 taskId가 없습니다: %s", payload)
+            return Response(status=status.HTTP_200_OK)
 
         complete_skin_analysis(task_id)
         return Response(status=status.HTTP_200_OK)
