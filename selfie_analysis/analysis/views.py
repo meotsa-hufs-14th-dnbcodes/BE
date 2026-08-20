@@ -81,7 +81,7 @@ class PerfectCorpWebhookView(APIView):
             logger.warning("PerfectCorp webhook signature verification failed")
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        task_id = payload["data"]["task_id"]
+        task_id = payload["data"]["taskId"]
         complete_skin_analysis(task_id)
 
         return Response(status=status.HTTP_200_OK)
