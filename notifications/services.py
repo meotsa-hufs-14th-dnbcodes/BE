@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import date, timedelta
 
 from django.db.models import Avg
@@ -163,3 +164,23 @@ def generate_weekly_report_notifications(today: date = None) -> int:
 
     logger.info("주간 리포트 알림 생성: %d건 (주 시작=%s)", created_count, this_monday)
     return created_count
+
+
+# 셀카 분석 완료 알림
+def notify_selfie_analysis_done(user_id, status, fail_reason=None) -> Notification:
+    if status == "SUCCESS":
+        title = "셀카 분석 완료"
+        body = "셀카 분석이 완료되었습니다."
+    else:
+        title = "셀카 분석 실패"
+        body = "셀카 분석에 실패했습니다. 셀카를 다시 업로드해주세요."
+
+    dedupe_key = f"analysis_done:{uuid.uuid4()}"
+    return Notification.objects.create(
+        user_id=user_id,
+        notification_type=Notification.TYPE_ANALYSIS_DONE,
+        dedupe_key=dedupe_key,
+        title=title,
+        body=body,
+        payload={"status": status, "failReason": fail_reason},
+    )
