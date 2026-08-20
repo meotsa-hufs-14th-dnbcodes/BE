@@ -79,6 +79,7 @@ WSGI_APPLICATION = "selfie_analysis.wsgi.application"
 DATABASES = {
     "default": env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
 }
+DATABASES["default"]["OPTIONS"] = {"init_command": "SET sql_mode='STRICT_TRANS_TABLES'"}
 
 
 # Password validation
